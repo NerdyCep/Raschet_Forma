@@ -77,6 +77,13 @@ namespace Raschet_forma
                 toolStripComboBox1.Items.Add(tabe.TableName);
             }
 
+            foreach (DataTable table in tableCollection)
+            {
+                // Добавляем новый столбец "Результат"
+                table.Columns.Add("Результат", typeof(double));
+                toolStripComboBox1.Items.Add(table.TableName);
+            }
+
             toolStripComboBox1.SelectedIndex = 0;
 
         }

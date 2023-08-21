@@ -53,6 +53,30 @@ namespace Raschet_forma
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private void PerformCalculations(DataTable table)
+        {
+            foreach (DataRow row in table.Rows)
+            {
+                object valueAObj = row["Значение 1"];
+                object valueBObj = row["Значение 2"];
+
+                if (valueAObj != DBNull.Value && valueBObj != DBNull.Value)
+                {
+                    double valueA = Convert.ToDouble(valueAObj);
+                    double valueB = Convert.ToDouble(valueBObj);
+
+                    double result = valueB / valueA; // Ваш расчет
+
+                    // Запись результата в столбец "Результат"
+                    row["Результат"] = result;
+                }
+                else
+                {
+                    row["Результат"] = DBNull.Value; // При отсутствии данных записываем DBNull
+                }
+            }
+        }
+
 
         private void OpenExcelFile(string path)
         {
@@ -72,25 +96,38 @@ namespace Raschet_forma
 
             toolStripComboBox1.Items.Clear();
 
-            foreach (DataTable tabe in tableCollection)
-            {
-                toolStripComboBox1.Items.Add(tabe.TableName);
-            }
-
             foreach (DataTable table in tableCollection)
             {
-                // Добавляем новый столбец "Результат"
-                table.Columns.Add("Результат", typeof(double));
-                toolStripComboBox1.Items.Add(table.TableName);
+                if (table.TableName == "Лист1") // Проверяем, что это нужный лист
+                {
+                    // Добавляем новую пустую строку в начало таблицы
+                    DataRow emptyRow = table.NewRow();
+                    table.Rows.InsertAt(emptyRow, 0);
+
+                    // Добавляем столбец "Результат" в конец таблицы
+                    table.Columns.Add("Результат", typeof(double));
+
+                    // Выполняем расчеты
+                    PerformCalculations(table);
+
+                    toolStripComboBox1.Items.Add(table.TableName);
+                    toolStripComboBox1.SelectedIndex = 0;
+                }
+                else
+                {
+                    toolStripComboBox1.Items.Add(table.TableName);
+                }
             }
 
-            toolStripComboBox1.SelectedIndex = 0;
 
         }
+
+
 
         private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             DataTable table = tableCollection[Convert.ToString(toolStripComboBox1.SelectedItem)];
+            PerformCalculations(table);
 
             dataGridView1.DataSource = table;
         }
